@@ -27,8 +27,6 @@ export const attendanceAPI = {
   mark: (attendanceData) => api.post('/attendance/', attendanceData),
   getByEmployee: (employeeId) => api.get(`/attendance/employee/${employeeId}`),
   getByDate: (date) => api.get(`/attendance/date/${date}`),
-  populateLast7Days: (referenceDate) =>
-    api.post(`/attendance/populate-last-7-days${referenceDate ? `?reference_date=${referenceDate}` : ''}`),
 };
 
 // Analytics APIs - reference_date for user's local date, _t prevents caching
