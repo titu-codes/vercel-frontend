@@ -27,12 +27,18 @@ export const attendanceAPI = {
   mark: (attendanceData) => api.post('/attendance/', attendanceData),
   getByEmployee: (employeeId) => api.get(`/attendance/employee/${employeeId}`),
   getByDate: (date) => api.get(`/attendance/date/${date}`),
-  populateLast7Days: () => api.post('/attendance/populate-last-7-days'),
+  populateLast7Days: (referenceDate = null) => {
+    const today = referenceDate || new Date().toISOString().slice(0, 10);
+    return api.post(`/attendance/populate-last-7-days?reference_date=${today}`);
+  },
 };
 
-// Analytics APIs
+// Analytics APIs - reference_date uses user's local date (fixes timezone mismatch)
 export const analyticsAPI = {
-  getDashboard: (days = 7) => api.get(`/analytics/dashboard?days=${days}`),
+  getDashboard: (days = 7, referenceDate = null) => {
+    const today = referenceDate || new Date().toISOString().slice(0, 10);
+    return api.get(`/analytics/dashboard?days=${days}&reference_date=${today}`);
+  },
 };
 
 export default api;

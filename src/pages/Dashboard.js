@@ -35,8 +35,9 @@ function Dashboard() {
     try {
       setLoading(true);
       setError(null);
+      const today = format(new Date(), 'yyyy-MM-dd');
       const [analyticsRes, employeesRes] = await Promise.all([
-        analyticsAPI.getDashboard(7),
+        analyticsAPI.getDashboard(7, today),
         employeeAPI.getAll(),
       ]);
       setAnalytics(analyticsRes.data);
@@ -102,7 +103,8 @@ function Dashboard() {
     }
     try {
       setIsPopulating(true);
-      const res = await attendanceAPI.populateLast7Days();
+      const today = format(new Date(), 'yyyy-MM-dd');
+      const res = await attendanceAPI.populateLast7Days(today);
       toast.success(res.data?.message || 'Attendance populated for last 7 days');
       fetchDashboardData();
     } catch (err) {
