@@ -93,10 +93,13 @@ function AttendanceForm({ employees, onSuccess }) {
       await onSuccess(data);
       setFormData({
         employee_id: '',
-        date: format(new Date(), 'yyyy-MM-dd'),
+        date: data.date,
         status: 'Present'
       });
       setErrors({});
+      // Refetch attendance for the date we just marked so stats update
+      const response = await attendanceAPI.getByDate(data.date);
+      setTodayAttendance(response.data);
       toast.success('Attendance marked successfully!');
     } catch (error) {
       console.error('Form submission error:', error);

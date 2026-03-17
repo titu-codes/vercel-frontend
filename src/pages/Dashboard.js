@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { format } from 'date-fns';
 import { toast } from 'react-toastify';
 import {
@@ -26,12 +26,9 @@ function Dashboard() {
   const [recentEmployees, setRecentEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const location = useLocation();
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async (isRefresh = false) => {
+  const fetchDashboardData = useCallback(async (isRefresh = false) => {
     try {
       if (!isRefresh) setLoading(true);
       setError(null);
@@ -62,7 +59,24 @@ function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Refetch when navigating to Dashboard or when tab becomes visible (e.g. after marking attendance)
+  useEffect(() => {
+    if (location.pathname === '/' || location.pathname === '') {
+      fetchDashboardData();
+    }
+  }, [location.pathname, fetchDashboardData]);
+
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchDashboardData(true);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+  }, [fetchDashboardData]);
 
   const handleMarkAllPresentToday = async () => {
     if (!recentEmployees.length && analytics?.total_employees === 0) {
@@ -148,7 +162,7 @@ function Dashboard() {
         <div className="dashboard-error">
           <FaExclamationTriangle />
           <span>{error}</span>
-          <button className="btn btn-primary btn-sm" onClick={fetchDashboardData}>
+          <button className="btn btn-primary btn-sm" onClick={() => fetchDashboardData(true)}>
             Retry
           </button>
         </div>
