@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// Production: always use Railway backend. Local: use env var or localhost
+// Production: use Railway backend. Local: use env var or localhost
 const RAILWAY_BACKEND = 'https://verccel-backend-production.up.railway.app';
 const API_BASE_URL =
   process.env.NODE_ENV === 'production'
@@ -27,16 +27,16 @@ export const attendanceAPI = {
   mark: (attendanceData) => api.post('/attendance/', attendanceData),
   getByEmployee: (employeeId) => api.get(`/attendance/employee/${employeeId}`),
   getByDate: (date) => api.get(`/attendance/date/${date}`),
+  populateLast7Days: (referenceDate) =>
+    api.post(`/attendance/populate-last-7-days${referenceDate ? `?reference_date=${referenceDate}` : ''}`),
 };
 
+// Analytics APIs - reference_date for user's local date, _t prevents caching
 export const analyticsAPI = {
-  getDashboard: (days = 7, date) => 
-    api.get(`/analytics/dashboard`, { 
-      params: { 
-        days, 
-        reference_date: date // Ensure this matches the FastAPI parameter
-      } 
-    }),
+  getDashboard: (days = 7, referenceDate = null) => {
+    const today = referenceDate || new Date().toISOString().slice(0, 10);
+    return api.get(`/analytics/dashboard?days=${days}&reference_date=${today}&_t=${Date.now()}`);
+  },
 };
 
 export default api;
