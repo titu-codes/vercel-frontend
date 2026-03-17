@@ -112,6 +112,12 @@
   font-size: 0.9375rem;
 }
 
+.dashboard-chart-empty__hint {
+  font-size: 0.8125rem;
+  margin-top: 0.5rem;
+  opacity: 0.85;
+}
+
 .dashboard-empty-inline .btn {
   margin-top: 1rem;
 }

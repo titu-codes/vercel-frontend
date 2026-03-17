@@ -1,11 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 import { FaUsers, FaCalendarCheck, FaCalendarTimes, FaUserPlus, FaCalendarAlt, FaExclamationTriangle } from 'react-icons/fa';
 import { analyticsAPI, employeeAPI } from '../services/api';
 import StatCard from '../components/shared/StatCard';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import '../styles/Dashboard.css';
+
+const COLORS = {
+  present: '#10b981',
+  absent: '#ef4444',
+};
 
 function Dashboard() {
   const [analytics, setAnalytics] = useState(null);
@@ -36,8 +49,6 @@ function Dashboard() {
         today_present: 0,
         today_absent: 0,
         last7_days: { present_count: 0, absent_count: 0 },
-        most_absent_last7_days: [],
-        attendance_by_date: [],
       });
       try {
         const employeesRes = await employeeAPI.getAll();
@@ -63,8 +74,18 @@ function Dashboard() {
       ? Math.round((analytics.today_present / analytics.total_employees) * 100)
       : 0;
 
+  const todayPieData = [
+    { name: 'Present', value: analytics.today_present, color: COLORS.present },
+    { name: 'Absent', value: analytics.today_absent, color: COLORS.absent },
+  ].filter((d) => d.value > 0);
+
+  const weekPieData = [
+    { name: 'Present', value: analytics.last7_days?.present_count || 0, color: COLORS.present },
+    { name: 'Absent', value: analytics.last7_days?.absent_count || 0, color: COLORS.absent },
+  ].filter((d) => d.value > 0);
+
   return (
-    <div className="dashboard" data-testid="dashboard">
+    <div className="dashboard">
       <div className="dashboard-hero">
         <div>
           <h1 className="dashboard-hero__title">Welcome back</h1>
@@ -103,22 +124,90 @@ function Dashboard() {
         />
         <StatCard
           icon={FaCalendarCheck}
-          label="Present Today"
+          label="Present Employees"
           value={analytics.today_present}
           variant="success"
         />
         <StatCard
           icon={FaCalendarTimes}
-          label="Absent Today"
+          label="Absent Employees"
           value={analytics.today_absent}
           variant="danger"
         />
         <StatCard
           icon={FaCalendarCheck}
-          label="Attendance Rate (Today)"
+          label="Attendance Rate"
           value={`${attendanceRate}%`}
           variant="default"
         />
+      </div>
+
+      <div className="dashboard-charts-row">
+        <div className="dashboard-card dashboard-card--pie">
+          <h3 className="dashboard-card__title">Today&apos;s Attendance</h3>
+          {todayPieData.length > 0 ? (
+            <div className="dashboard-pie-chart">
+              <ResponsiveContainer width="100%" height={260}>
+                <PieChart>
+                  <Pie
+                    data={todayPieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={2}
+                    dataKey="value"
+                    label={({ name, value }) => `${name}: ${value}`}
+                  >
+                    {todayPieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => [value, '']} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="dashboard-chart-empty">
+              <p>No attendance marked today</p>
+              <p className="dashboard-chart-empty__hint">Mark attendance in the Attendance tab to see data</p>
+            </div>
+          )}
+        </div>
+
+        <div className="dashboard-card dashboard-card--pie">
+          <h3 className="dashboard-card__title">This Week&apos;s Attendance</h3>
+          {weekPieData.length > 0 ? (
+            <div className="dashboard-pie-chart">
+              <ResponsiveContainer width="100%" height={260}>
+                <PieChart>
+                  <Pie
+                    data={weekPieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={2}
+                    dataKey="value"
+                    label={({ name, value }) => `${name}: ${value}`}
+                  >
+                    {weekPieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => [value, '']} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="dashboard-chart-empty">
+              <p>No attendance data for this week</p>
+              <p className="dashboard-chart-empty__hint">Mark attendance in the Attendance tab to see data</p>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="dashboard-card dashboard-card--recent">
