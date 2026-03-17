@@ -15,7 +15,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { FaUsers, FaCalendarCheck, FaCalendarTimes, FaUserPlus, FaCalendarAlt, FaExclamationTriangle } from 'react-icons/fa';
+import { FaUsers, FaCalendarCheck, FaCalendarTimes, FaUserPlus, FaCalendarAlt, FaExclamationTriangle, FaSync } from 'react-icons/fa';
 import { analyticsAPI, employeeAPI, attendanceAPI } from '../services/api';
 import StatCard from '../components/shared/StatCard';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
@@ -31,9 +31,9 @@ function Dashboard() {
     fetchDashboardData();
   }, []);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (isRefresh = false) => {
     try {
-      setLoading(true);
+      if (!isRefresh) setLoading(true);
       setError(null);
       const today = format(new Date(), 'yyyy-MM-dd');
       const [analyticsRes, employeesRes] = await Promise.all([
@@ -90,7 +90,7 @@ function Dashboard() {
         }
       }
       toast.success(`Marked ${marked} employee(s) as Present for today`);
-      fetchDashboardData();
+      fetchDashboardData(true);
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to mark attendance');
     }
@@ -106,7 +106,7 @@ function Dashboard() {
       const today = format(new Date(), 'yyyy-MM-dd');
       const res = await attendanceAPI.populateLast7Days(today);
       toast.success(res.data?.message || 'Attendance populated for last 7 days');
-      fetchDashboardData();
+      fetchDashboardData(true);
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to populate attendance');
     } finally {
@@ -153,6 +153,14 @@ function Dashboard() {
           </p>
         </div>
         <div className="dashboard-hero__actions">
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => fetchDashboardData(true)}
+            title="Refresh data after marking attendance"
+          >
+            <FaSync /> Refresh
+          </button>
           <Link to="/employees" className="btn btn-primary">
             <FaUserPlus />
             Add Employee
@@ -168,7 +176,7 @@ function Dashboard() {
         <div className="dashboard-error">
           <FaExclamationTriangle />
           <span>{error}</span>
-          <button className="btn btn-primary btn-sm" onClick={fetchDashboardData}>
+          <button className="btn btn-primary btn-sm" onClick={() => fetchDashboardData(false)}>
             Retry
           </button>
         </div>
