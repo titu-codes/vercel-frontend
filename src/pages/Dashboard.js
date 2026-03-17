@@ -64,7 +64,7 @@ function Dashboard() {
       : 0;
 
   return (
-    <div className="dashboard">
+    <div className="dashboard" data-testid="dashboard">
       <div className="dashboard-hero">
         <div>
           <h1 className="dashboard-hero__title">Welcome back</h1>
