@@ -29,12 +29,14 @@ export const attendanceAPI = {
   getByDate: (date) => api.get(`/attendance/date/${date}`),
 };
 
-// Analytics APIs - reference_date uses user's local date, _t prevents caching
 export const analyticsAPI = {
-  getDashboard: (days = 7, referenceDate = null) => {
-    const today = referenceDate || new Date().toISOString().slice(0, 10);
-    return api.get(`/analytics/dashboard?days=${days}&reference_date=${today}&_t=${Date.now()}`);
-  },
+  getDashboard: (days = 7, date) => 
+    api.get(`/analytics/dashboard`, { 
+      params: { 
+        days, 
+        reference_date: date // Ensure this matches the FastAPI parameter
+      } 
+    }),
 };
 
 export default api;
