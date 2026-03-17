@@ -15,7 +15,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { FaUsers, FaCalendarCheck, FaCalendarTimes, FaUserPlus, FaCalendarAlt, FaExclamationTriangle, FaSync } from 'react-icons/fa';
+import { FaUsers, FaCalendarCheck, FaCalendarTimes, FaUserPlus, FaCalendarAlt, FaExclamationTriangle } from 'react-icons/fa';
 import { analyticsAPI, employeeAPI, attendanceAPI } from '../services/api';
 import StatCard from '../components/shared/StatCard';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
@@ -153,14 +153,6 @@ function Dashboard() {
           </p>
         </div>
         <div className="dashboard-hero__actions">
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={() => fetchDashboardData(true)}
-            title="Refresh data after marking attendance"
-          >
-            <FaSync /> Refresh
-          </button>
           <Link to="/employees" className="btn btn-primary">
             <FaUserPlus />
             Add Employee
