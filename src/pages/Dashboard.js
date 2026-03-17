@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { format } from 'date-fns';
 import {
   PieChart,
@@ -30,7 +30,7 @@ function Dashboard() {
     fetchDashboardData();
   }, []);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -59,7 +59,24 @@ function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Refetch when navigating to Dashboard or when tab becomes visible (after marking attendance)
+  useEffect(() => {
+    if (location.pathname === '/' || location.pathname === '') {
+      fetchDashboardData();
+    }
+  }, [location.pathname, fetchDashboardData]);
+
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchDashboardData();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+  }, [fetchDashboardData]);
 
   if (loading) {
     return (
