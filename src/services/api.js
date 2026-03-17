@@ -1,7 +1,11 @@
 import axios from 'axios';
 
-// Use the environment variable from .env, fallback to local if not found
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:8000';
+// Use env var, or Railway backend in production, or localhost for dev
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL ||
+  (process.env.NODE_ENV === 'production'
+    ? 'https://verccel-backend-production.up.railway.app'
+    : 'http://127.0.0.1:8000');
 
 const api = axios.create({
   baseURL: API_BASE_URL,

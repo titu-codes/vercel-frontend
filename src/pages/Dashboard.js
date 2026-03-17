@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
+import { toast } from 'react-toastify';
 import {
   BarChart,
   Bar,
@@ -15,7 +16,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { FaUsers, FaCalendarCheck, FaCalendarTimes, FaUserPlus, FaCalendarAlt, FaExclamationTriangle } from 'react-icons/fa';
-import { analyticsAPI, employeeAPI } from '../services/api';
+import { analyticsAPI, employeeAPI, attendanceAPI } from '../services/api';
 import StatCard from '../components/shared/StatCard';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import '../styles/Dashboard.css';
@@ -59,6 +60,36 @@ function Dashboard() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleMarkAllPresentToday = async () => {
+    if (!recentEmployees.length && analytics?.total_employees === 0) {
+      toast.info('Add employees first');
+      return;
+    }
+    try {
+      const employeesRes = await employeeAPI.getAll();
+      const today = format(new Date(), 'yyyy-MM-dd');
+      let marked = 0;
+      for (const emp of employeesRes.data) {
+        try {
+          await attendanceAPI.mark({
+            employee_id: emp.employee_id,
+            date: today,
+            status: 'Present',
+          });
+          marked++;
+        } catch (e) {
+          if (e.response?.status === 400 && e.response?.data?.detail?.includes('already marked')) {
+            marked++;
+          }
+        }
+      }
+      toast.success(`Marked ${marked} employee(s) as Present for today`);
+      fetchDashboardData();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to mark attendance');
     }
   };
 
@@ -177,6 +208,16 @@ function Dashboard() {
           ) : (
             <div className="dashboard-chart-empty">
               <p>No attendance marked today</p>
+              {analytics.total_employees > 0 && (
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={handleMarkAllPresentToday}
+                  style={{ marginTop: 8 }}
+                >
+                  <FaCalendarCheck /> Mark all Present for today
+                </button>
+              )}
             </div>
           )}
         </div>
