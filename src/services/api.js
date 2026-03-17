@@ -1,11 +1,11 @@
 import axios from 'axios';
 
-// Use env var, or Railway backend in production, or localhost for dev
+// Production: always use Railway backend. Local: use env var or localhost
+const RAILWAY_BACKEND = 'https://verccel-backend-production.up.railway.app';
 const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL ||
-  (process.env.NODE_ENV === 'production'
-    ? 'https://verccel-backend-production.up.railway.app'
-    : 'http://127.0.0.1:8000');
+  process.env.NODE_ENV === 'production'
+    ? RAILWAY_BACKEND
+    : (process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:8000');
 
 const api = axios.create({
   baseURL: API_BASE_URL,
