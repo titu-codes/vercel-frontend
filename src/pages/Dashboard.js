@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { format } from 'date-fns';
 import { toast } from 'react-toastify';
 import {
@@ -26,12 +26,9 @@ function Dashboard() {
   const [recentEmployees, setRecentEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const location = useLocation();
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async (isRefresh = false) => {
+  const fetchDashboardData = useCallback(async (isRefresh = false) => {
     try {
       if (!isRefresh) setLoading(true);
       setError(null);
@@ -62,9 +59,22 @@ function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const [isPopulating, setIsPopulating] = useState(false);
+  // Auto-refresh: on mount, when navigating to Dashboard, and when tab becomes visible
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData, location.pathname]);
+
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchDashboardData(true);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+  }, [fetchDashboardData]);
 
   const handleMarkAllPresentToday = async () => {
     if (!recentEmployees.length && analytics?.total_employees === 0) {
@@ -93,24 +103,6 @@ function Dashboard() {
       fetchDashboardData(true);
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to mark attendance');
-    }
-  };
-
-  const handlePopulateLast7Days = async () => {
-    if (analytics?.total_employees === 0) {
-      toast.info('Add employees first');
-      return;
-    }
-    try {
-      setIsPopulating(true);
-      const today = format(new Date(), 'yyyy-MM-dd');
-      const res = await attendanceAPI.populateLast7Days(today);
-      toast.success(res.data?.message || 'Attendance populated for last 7 days');
-      fetchDashboardData(true);
-    } catch (err) {
-      toast.error(err.response?.data?.detail || 'Failed to populate attendance');
-    } finally {
-      setIsPopulating(false);
     }
   };
 
@@ -278,19 +270,9 @@ function Dashboard() {
           ) : (
             <div className="dashboard-chart-empty">
               <p>No attendance data for the last 7 days</p>
-              {analytics.total_employees > 0 && (
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm"
-                  onClick={handlePopulateLast7Days}
-                  disabled={isPopulating}
-                  style={{ marginTop: 8 }}
-                >
-                  {isPopulating ? 'Populating...' : (
-                    <><FaCalendarCheck /> Populate last 7 days</>
-                  )}
-                </button>
-              )}
+              <p style={{ fontSize: '0.9rem', color: '#64748b', marginTop: 8 }}>
+                Mark attendance in the Attendance tab to see data here
+              </p>
             </div>
           )}
         </div>
@@ -316,19 +298,9 @@ function Dashboard() {
           ) : (
             <div className="dashboard-chart-empty">
               <p>No attendance data for the last 7 days</p>
-              {analytics.total_employees > 0 && (
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm"
-                  onClick={handlePopulateLast7Days}
-                  disabled={isPopulating}
-                  style={{ marginTop: 8 }}
-                >
-                  {isPopulating ? 'Populating...' : (
-                    <><FaCalendarCheck /> Populate last 7 days</>
-                  )}
-                </button>
-              )}
+              <p style={{ fontSize: '0.9rem', color: '#64748b', marginTop: 8 }}>
+                Mark attendance in the Attendance tab to see the trend
+              </p>
             </div>
           )}
         </div>
