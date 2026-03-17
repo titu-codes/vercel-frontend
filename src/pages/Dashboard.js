@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { toast } from 'react-toastify';
 import {
   BarChart,
   Bar,
@@ -16,7 +15,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { FaUsers, FaCalendarCheck, FaCalendarTimes, FaUserPlus, FaCalendarAlt, FaExclamationTriangle } from 'react-icons/fa';
-import { analyticsAPI, employeeAPI, attendanceAPI } from '../services/api';
+import { analyticsAPI, employeeAPI } from '../services/api';
 import StatCard from '../components/shared/StatCard';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import '../styles/Dashboard.css';
@@ -26,11 +25,14 @@ function Dashboard() {
   const [recentEmployees, setRecentEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const location = useLocation();
 
-  const fetchDashboardData = useCallback(async (isRefresh = false) => {
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
     try {
-      if (!isRefresh) setLoading(true);
+      setLoading(true);
       setError(null);
       const today = format(new Date(), 'yyyy-MM-dd');
       const [analyticsRes, employeesRes] = await Promise.all([
@@ -58,53 +60,6 @@ function Dashboard() {
       }
     } finally {
       setLoading(false);
-    }
-  }, []);
-
-  // Refetch when navigating to Dashboard or when tab becomes visible (e.g. after marking attendance)
-  useEffect(() => {
-    if (location.pathname === '/' || location.pathname === '') {
-      fetchDashboardData();
-    }
-  }, [location.pathname, fetchDashboardData]);
-
-  useEffect(() => {
-    const onVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        fetchDashboardData(true);
-      }
-    };
-    document.addEventListener('visibilitychange', onVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
-  }, [fetchDashboardData]);
-
-  const handleMarkAllPresentToday = async () => {
-    if (!recentEmployees.length && analytics?.total_employees === 0) {
-      toast.info('Add employees first');
-      return;
-    }
-    try {
-      const employeesRes = await employeeAPI.getAll();
-      const today = format(new Date(), 'yyyy-MM-dd');
-      let marked = 0;
-      for (const emp of employeesRes.data) {
-        try {
-          await attendanceAPI.mark({
-            employee_id: emp.employee_id,
-            date: today,
-            status: 'Present',
-          });
-          marked++;
-        } catch (e) {
-          if (e.response?.status === 400 && e.response?.data?.detail?.includes('already marked')) {
-            marked++;
-          }
-        }
-      }
-      toast.success(`Marked ${marked} employee(s) as Present for today`);
-      fetchDashboardData(true);
-    } catch (err) {
-      toast.error(err.response?.data?.detail || 'Failed to mark attendance');
     }
   };
 
@@ -162,7 +117,7 @@ function Dashboard() {
         <div className="dashboard-error">
           <FaExclamationTriangle />
           <span>{error}</span>
-          <button className="btn btn-primary btn-sm" onClick={() => fetchDashboardData(true)}>
+          <button className="btn btn-primary btn-sm" onClick={fetchDashboardData}>
             Retry
           </button>
         </div>
@@ -223,16 +178,6 @@ function Dashboard() {
           ) : (
             <div className="dashboard-chart-empty">
               <p>No attendance marked today</p>
-              {analytics.total_employees > 0 && (
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm"
-                  onClick={handleMarkAllPresentToday}
-                  style={{ marginTop: 8 }}
-                >
-                  <FaCalendarCheck /> Mark all Present for today
-                </button>
-              )}
             </div>
           )}
         </div>
@@ -264,9 +209,6 @@ function Dashboard() {
           ) : (
             <div className="dashboard-chart-empty">
               <p>No attendance data for the last 7 days</p>
-              <p style={{ fontSize: '0.9rem', color: '#64748b', marginTop: 8 }}>
-                Mark attendance in the Attendance tab to see data here
-              </p>
             </div>
           )}
         </div>
@@ -292,9 +234,6 @@ function Dashboard() {
           ) : (
             <div className="dashboard-chart-empty">
               <p>No attendance data for the last 7 days</p>
-              <p style={{ fontSize: '0.9rem', color: '#64748b', marginTop: 8 }}>
-                Mark attendance in the Attendance tab to see the trend
-              </p>
             </div>
           )}
         </div>
