@@ -1,16 +1,7 @@
 import React, { useState } from 'react';
 import { format, parseISO, isToday, isYesterday, isThisWeek, isSameMonth } from 'date-fns';
-import { 
-  FaCalendar, 
-  FaUser, 
-  FaCalendarCheck, 
-  FaCalendarTimes,
-  FaFilter,
-  FaSort,
-  FaDownload,
-  FaPrint,
-  FaSearch
-} from 'react-icons/fa';
+import { FaCalendar, FaCalendarCheck, FaCalendarTimes, FaFilter, FaSort, FaDownload, FaPrint, FaSearch } from 'react-icons/fa';
+import Badge from './shared/Badge';
 import '../styles/AttendanceList.css';
 
 function AttendanceList({ attendance, employee, showEmployeeColumn = true }) {
@@ -33,8 +24,8 @@ function AttendanceList({ attendance, employee, showEmployeeColumn = true }) {
 
   // Calculate statistics
   const totalDays = attendance.length;
-  const presentDays = attendance.filter(a => a.status === 'Present').length;
-  const absentDays = attendance.filter(a => a.status === 'Absent').length;
+  const presentDays = attendance.filter(a => (a.status || '').toLowerCase() === 'present').length;
+  const absentDays = attendance.filter(a => (a.status || '').toLowerCase() === 'absent').length;
   const attendanceRate = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 0;
 
   // Filter attendance
@@ -46,7 +37,7 @@ function AttendanceList({ attendance, employee, showEmployeeColumn = true }) {
       }
       
       // Status filter
-      if (filterStatus && record.status !== filterStatus) {
+      if (filterStatus && (record.status || '').toLowerCase() !== filterStatus.toLowerCase()) {
         return false;
       }
       
@@ -336,23 +327,11 @@ function AttendanceList({ attendance, employee, showEmployeeColumn = true }) {
                     </td>
                   )}
                   <td>
-                    <span className={`status-badge status-${record.status.toLowerCase()}`}>
-                      {record.status === 'Present' ? (
-                        <>
-                          <FaCalendarCheck className="status-icon" />
-                          Present
-                        </>
-                      ) : (
-                        <>
-                          <FaCalendarTimes className="status-icon" />
-                          Absent
-                        </>
-                      )}
-                    </span>
+                    <Badge status={record.status} />
                   </td>
                   <td>
                     <div className="remarks-cell">
-                      {record.status === 'Present' ? (
+                      {(record.status || '').toLowerCase() === 'present' ? (
                         <span className="remark-present">Regular attendance</span>
                       ) : (
                         <span className="remark-absent">Leave/Absent</span>

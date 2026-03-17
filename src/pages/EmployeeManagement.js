@@ -3,12 +3,17 @@ import { toast } from 'react-toastify';
 import { employeeAPI } from '../services/api';
 import EmployeeForm from '../components/EmployeeForm';
 import EmployeeList from '../components/EmployeeList';
+import Modal from '../components/shared/Modal';
+import LoadingSpinner from '../components/shared/LoadingSpinner';
+import EmptyState from '../components/shared/EmptyState';
+import { FaUserTie } from 'react-icons/fa';
 import '../styles/EmployeeManagement.css';
 
 function EmployeeManagement() {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, employee: null });
 
   const fetchEmployees = async () => {
     try {
@@ -38,23 +43,26 @@ function EmployeeManagement() {
     }
   };
 
-  const handleDeleteEmployee = async (employeeId) => {
-    if (window.confirm('Are you sure you want to delete this employee?')) {
-      try {
-        await employeeAPI.delete(employeeId);
-        toast.success('Employee deleted successfully');
-        fetchEmployees();
-      } catch (err) {
-        toast.error(err.response?.data?.detail || 'Failed to delete employee');
-      }
+  const handleDeleteClick = (employee) => {
+    setDeleteModal({ isOpen: true, employee });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal.employee) return;
+    try {
+      await employeeAPI.delete(deleteModal.employee.employee_id);
+      toast.success('Employee deleted successfully');
+      setDeleteModal({ isOpen: false, employee: null });
+      fetchEmployees();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to delete employee');
     }
   };
 
   if (loading) {
     return (
       <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Loading employees...</p>
+        <LoadingSpinner message="Loading employees..." />
       </div>
     );
   }
@@ -75,22 +83,31 @@ function EmployeeManagement() {
           {error ? (
             <div className="error-state">
               <p>{error}</p>
-              <button onClick={fetchEmployees} className="btn-retry">
+              <button onClick={fetchEmployees} className="btn btn-primary">
                 Retry
               </button>
             </div>
           ) : employees.length === 0 ? (
-            <div className="empty-state">
-              <p>No employees found. Add your first employee!</p>
-            </div>
-          ) : (
-            <EmployeeList
-              employees={employees}
-              onDelete={handleDeleteEmployee}
+            <EmptyState
+              icon={FaUserTie}
+              title="No employees yet"
+              message="Add your first employee to get started."
             />
+          ) : (
+            <EmployeeList employees={employees} onDelete={handleDeleteClick} />
           )}
         </div>
       </div>
+
+      <Modal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, employee: null })}
+        title="Delete Employee"
+        message={`Are you sure you want to delete ${deleteModal.employee?.full_name} (${deleteModal.employee?.employee_id})? This action cannot be undone.`}
+        onConfirm={handleDeleteConfirm}
+        confirmLabel="Delete"
+        variant="danger"
+      />
     </div>
   );
 }

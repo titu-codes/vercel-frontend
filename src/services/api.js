@@ -25,4 +25,9 @@ export const attendanceAPI = {
   getByDate: (date) => api.get(`/attendance/date/${date}`),
 };
 
+// Analytics APIs
+export const analyticsAPI = {
+  getDashboard: (days = 7) => api.get(`/analytics/dashboard?days=${days}`),
+};
+
 export default api;

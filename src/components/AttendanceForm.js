@@ -48,21 +48,11 @@ function AttendanceForm({ employees, onSuccess }) {
 
   const availableEmployees = getAvailableEmployees();
 
-  const validateForm = () => {
+  const validateForm = (data = formData) => {
     const newErrors = {};
-    
-    if (!formData.employee_id) {
-      newErrors.employee_id = 'Please select an employee';
-    }
-    
-    if (!formData.date) {
-      newErrors.date = 'Date is required';
-    }
-    
-    if (!formData.status) {
-      newErrors.status = 'Please select attendance status';
-    }
-    
+    if (!data.employee_id) newErrors.employee_id = 'Please select an employee';
+    if (!data.date) newErrors.date = 'Date is required';
+    if (!data.status) newErrors.status = 'Please select attendance status';
     return newErrors;
   };
 
@@ -82,30 +72,25 @@ function AttendanceForm({ employees, onSuccess }) {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    const validationErrors = validateForm();
+  const submitAttendance = async (dataToSubmit) => {
+    const data = dataToSubmit || formData;
+    const validationErrors = validateForm(data);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
 
-    // Check if attendance already marked for this employee on this date
     const alreadyMarked = todayAttendance.find(
-      record => record.employee_id === formData.employee_id
+      record => record.employee_id === data.employee_id
     );
-    
     if (alreadyMarked) {
-      toast.error('Attendance already marked for this employee today');
+      toast.error('Attendance already marked for this employee on this date');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await onSuccess(formData);
-      
-      // Reset form after successful submission
+      await onSuccess(data);
       setFormData({
         employee_id: '',
         date: format(new Date(), 'yyyy-MM-dd'),
@@ -121,21 +106,17 @@ function AttendanceForm({ employees, onSuccess }) {
     }
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    submitAttendance();
+  };
+
   const handleQuickMark = (status) => {
     if (!formData.employee_id) {
       toast.error('Please select an employee first');
       return;
     }
-
-    const quickFormData = {
-      ...formData,
-      status
-    };
-
-    // Submit immediately
-    handleSubmit({ 
-      preventDefault: () => {} 
-    }, quickFormData);
+    submitAttendance({ ...formData, status });
   };
 
   const getEmployeeName = (employeeId) => {
@@ -300,13 +281,13 @@ function AttendanceForm({ employees, onSuccess }) {
           <div className="attendance-summary">
             <div className="summary-item present">
               <span className="summary-count">
-                {todayAttendance.filter(a => a.status === 'Present').length}
+                {todayAttendance.filter(a => (a.status || '').toLowerCase() === 'present').length}
               </span>
               <span className="summary-label">Present</span>
             </div>
             <div className="summary-item absent">
               <span className="summary-count">
-                {todayAttendance.filter(a => a.status === 'Absent').length}
+                {todayAttendance.filter(a => (a.status || '').toLowerCase() === 'absent').length}
               </span>
               <span className="summary-label">Absent</span>
             </div>

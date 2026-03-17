@@ -203,7 +203,7 @@ function EmployeeList({ employees, onDelete, onView }) {
                     )}
                     <button
                       className="btn-action btn-delete"
-                      onClick={() => onDelete(employee.employee_id)}
+                      onClick={() => onDelete(employee)}
                       title="Delete Employee"
                     >
                       <FaTrash />
