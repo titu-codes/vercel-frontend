@@ -27,6 +27,7 @@ export const attendanceAPI = {
   mark: (attendanceData) => api.post('/attendance/', attendanceData),
   getByEmployee: (employeeId) => api.get(`/attendance/employee/${employeeId}`),
   getByDate: (date) => api.get(`/attendance/date/${date}`),
+  populateLast7Days: () => api.post('/attendance/populate-last-7-days'),
 };
 
 // Analytics APIs
