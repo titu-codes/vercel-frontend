@@ -22,7 +22,7 @@ import {
   FaCalendarAlt,
   FaExclamationTriangle,
 } from 'react-icons/fa';
-import { analyticsAPI, employeeAPI } from '../services/api';
+import { analyticsAPI, attendanceAPI, employeeAPI } from '../services/api';
 import StatCard from '../components/shared/StatCard';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import '../styles/Dashboard.css';
@@ -44,19 +44,79 @@ function Dashboard() {
       setLoading(true);
       setError(null);
       const today = format(new Date(), 'yyyy-MM-dd');
-      const [analyticsRes, employeesRes] = await Promise.all([
-        analyticsAPI.getDashboard(7, today),
-        employeeAPI.getAll(),
-      ]);
-      setAnalytics(analyticsRes.data);
+
+      const employeesRes = await employeeAPI.getAll();
+      const todayAttendanceRes = await attendanceAPI.getByDate(today).catch(() => ({ data: [] }));
+
+      const todayAttendance = todayAttendanceRes.data || [];
+      const todayPresent = todayAttendance.filter(
+        (a) => (a.status || '').toLowerCase() === 'present'
+      ).length;
+      const todayAbsent = todayAttendance.filter(
+        (a) => (a.status || '').toLowerCase() === 'absent'
+      ).length;
+
+      const last7Dates = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        last7Dates.push(format(d, 'yyyy-MM-dd'));
+      }
+
+      const weekAttendanceRes = await Promise.all(
+        last7Dates.map((d) => attendanceAPI.getByDate(d).catch(() => ({ data: [] })))
+      );
+
+      let weekPresent = 0;
+      let weekAbsent = 0;
+      const attendanceByDate = last7Dates.map((dateStr, i) => {
+        const records = weekAttendanceRes[i]?.data || [];
+        const present = records.filter((a) => (a.status || '').toLowerCase() === 'present').length;
+        const absent = records.filter((a) => (a.status || '').toLowerCase() === 'absent').length;
+        weekPresent += present;
+        weekAbsent += absent;
+        return { date: dateStr, present_count: present, absent_count: absent };
+      });
+
+      let analyticsData = {};
+      try {
+        const analyticsRes = await analyticsAPI.getDashboard(7, today);
+        analyticsData = analyticsRes.data;
+      } catch (e) {
+        /* use computed data */
+      }
+
+      setAnalytics({
+        ...analyticsData,
+        total_employees: employeesRes.data.length,
+        today_present: todayPresent,
+        today_absent: todayAbsent,
+        last7_days: { present_count: weekPresent, absent_count: weekAbsent },
+        attendance_by_date: attendanceByDate,
+      });
       setEmployees(employeesRes.data);
     } catch (err) {
       console.error('Failed to fetch dashboard data:', err);
       setError('Failed to load dashboard. Please ensure the backend is running.');
+      const today = format(new Date(), 'yyyy-MM-dd');
+      let todayPresent = 0;
+      let todayAbsent = 0;
+      try {
+        const todayRes = await attendanceAPI.getByDate(today);
+        const todayAttendance = todayRes.data || [];
+        todayPresent = todayAttendance.filter(
+          (a) => (a.status || '').toLowerCase() === 'present'
+        ).length;
+        todayAbsent = todayAttendance.filter(
+          (a) => (a.status || '').toLowerCase() === 'absent'
+        ).length;
+      } catch (e) {
+        /* ignore */
+      }
       setAnalytics({
         total_employees: 0,
-        today_present: 0,
-        today_absent: 0,
+        today_present: todayPresent,
+        today_absent: todayAbsent,
         last7_days: { present_count: 0, absent_count: 0 },
         attendance_by_date: [],
       });
