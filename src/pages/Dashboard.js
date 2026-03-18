@@ -249,7 +249,7 @@ function Dashboard() {
           <h3 className="dashboard-card__title">Today&apos;s Attendance</h3>
           {todayPieData.length > 0 ? (
             <div className="dashboard-pie-chart">
-              <ResponsiveContainer width="100%" height={260}>
+              <ResponsiveContainer width="100%" height={320}>
                 <PieChart>
                   <Pie
                     data={todayPieData}
@@ -284,7 +284,7 @@ function Dashboard() {
           <h3 className="dashboard-card__title">This Week&apos;s Attendance</h3>
           {weekPieData.length > 0 ? (
             <div className="dashboard-pie-chart">
-              <ResponsiveContainer width="100%" height={260}>
+              <ResponsiveContainer width="100%" height={320}>
                 <PieChart>
                   <Pie
                     data={weekPieData}

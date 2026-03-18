@@ -71,14 +71,15 @@
 }
 
 .dashboard-card--pie {
-  min-height: 320px;
+  min-height: 400px;
 }
 
 .dashboard-pie-chart {
-  min-height: 260px;
+  min-height: 340px;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 1rem 0;
 }
 
 .dashboard-grid {
