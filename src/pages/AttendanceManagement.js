@@ -48,6 +48,8 @@ function AttendanceManagement() {
       if (attendanceData.employee_id === selectedEmployee?.employee_id) {
         fetchAttendance(selectedEmployee.employee_id);
       }
+      // Notify Dashboard to refetch analytics
+      window.dispatchEvent(new CustomEvent('attendance-updated'));
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to mark attendance');
     }
