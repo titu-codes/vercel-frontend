@@ -265,7 +265,15 @@ function Dashboard() {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => [value, '']} />
+                  <Tooltip
+                    formatter={(value) => [value, '']}
+                    contentStyle={{
+                      borderRadius: '12px',
+                      border: '1px solid rgba(226, 232, 240, 0.9)',
+                      boxShadow: '0 4px 20px rgba(15, 23, 42, 0.12)',
+                      padding: '12px 16px',
+                    }}
+                  />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -300,7 +308,15 @@ function Dashboard() {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => [value, '']} />
+                  <Tooltip
+                    formatter={(value) => [value, '']}
+                    contentStyle={{
+                      borderRadius: '12px',
+                      border: '1px solid rgba(226, 232, 240, 0.9)',
+                      boxShadow: '0 4px 20px rgba(15, 23, 42, 0.12)',
+                      padding: '12px 16px',
+                    }}
+                  />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -327,8 +343,10 @@ function Dashboard() {
                 <YAxis tick={{ fontSize: 12 }} stroke="#64748b" />
                 <Tooltip
                   contentStyle={{
-                    borderRadius: '8px',
-                    border: '1px solid var(--border-color)',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(226, 232, 240, 0.9)',
+                    boxShadow: '0 4px 20px rgba(15, 23, 42, 0.12)',
+                    padding: '12px 16px',
                   }}
                 />
                 <Legend />

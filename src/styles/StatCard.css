@@ -26,17 +26,17 @@
 }
 
 .stat-card--default .stat-card__icon {
-  background: var(--primary-light);
+  background: linear-gradient(135deg, var(--primary-light) 0%, #c7d2fe 100%);
   color: var(--primary-color);
 }
 
 .stat-card--success .stat-card__icon {
-  background: var(--success-light);
+  background: linear-gradient(135deg, var(--success-light) 0%, #a7f3d0 100%);
   color: var(--success-color);
 }
 
 .stat-card--danger .stat-card__icon {
-  background: var(--danger-light);
+  background: linear-gradient(135deg, var(--danger-light) 0%, #fecaca 100%);
   color: var(--danger-color);
 }
 
